@@ -166,6 +166,7 @@ val init :
   ?src:string ->
   ?tls_own_key:tls_own_key ->
   ?tls_server_key:tls_own_key (* Deprecated, use tls_own_key. *) ->
+  ?verify:bool ->
   unit -> ctx io
 
 (** [connect ~ctx client] establishes an outgoing connection

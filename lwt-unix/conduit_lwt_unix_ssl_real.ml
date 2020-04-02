@@ -28,13 +28,14 @@ let chans_of_fd sock =
   ((Lwt_ssl.get_fd sock), ic, oc)
 
 module Client = struct
-  let create_ctx ?certfile ?keyfile ?password () =
+  let create_ctx ?certfile ?keyfile ?password ~verify () =
     let ctx = Ssl.create_context Ssl.SSLv23 Ssl.Client_context in
     Ssl.disable_protocols ctx [Ssl.SSLv23];
     (* Use default CA certificates *)
     ignore (Ssl.set_default_verify_paths ctx);
-    (* Enable peer verification *)
-    Ssl.set_verify ctx [Ssl.Verify_peer] None;
+    if verify then
+      (* Enable peer verification *)
+      Ssl.set_verify ctx [Ssl.Verify_peer] None;
     (match certfile, keyfile with
      | Some certfile, Some keyfile -> Ssl.use_certificate ctx certfile keyfile
      | None, _ | _, None -> ());
@@ -43,7 +44,7 @@ module Client = struct
      | None -> ());
     ctx
 
-  let default_ctx = create_ctx ()
+  let default_ctx = create_ctx ~verify:true ()
 
   let connect ?(ctx=default_ctx) ?src ?hostname sa =
     Conduit_lwt_server.with_socket sa (fun fd ->
